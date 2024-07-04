@@ -17,13 +17,19 @@ def transcribe_speech(audio_file):
         "automatic-speech-recognition", model=MODEL, chunk_length_s=20, device="cpu"
     )
 
-    prediction = pipe(audio_file, batch_size=8, return_timestamps=True)["chunks"]
-    output = json.dumps(prediction, indent=2)
+    try:
+        prediction = pipe(audio_file, batch_size=8, return_timestamps=True)["chunks"]
+        output = json.dumps(prediction, indent=2)
+    except Exception as e:
+        print(f"Predicton Error: {e}")
 
     filename = os.path.basename(audio_file).replace(".wav", ".json")
 
-    with open(os.path.join(JSON_OUTPUT, filename), "w") as f:
-        f.write(output)
+    try:
+        with open(os.path.join(JSON_OUTPUT, filename), "w") as f:
+            f.write(output)
+    except IOError as e:
+        print(f"File Write Error: {e}")
 
 for file in FILE_LIST:
     transcribe_speech(file)
