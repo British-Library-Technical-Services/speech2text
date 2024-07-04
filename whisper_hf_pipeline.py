@@ -5,6 +5,7 @@ import torch
 from transformers import pipeline
 import os
 import json
+from tqdm import tqdm
 
 MODEL = os.getenv("MODEL_TINY")
 AUDIO_LOCATION = os.getenv("AUDIO_LOCATION")
@@ -31,5 +32,5 @@ def transcribe_speech(audio_file):
     except IOError as e:
         print(f"File Write Error: {e}")
 
-for file in FILE_LIST:
+for file in tqdm(FILE_LIST, desc="Transcribing Audio Files"):
     transcribe_speech(file)
