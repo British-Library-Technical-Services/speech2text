@@ -7,7 +7,7 @@ import os
 import json
 from tqdm import tqdm
 
-MODEL = os.getenv("MODEL_TINY")
+MODEL = os.getenv("HF_MODEL_TINY")
 AUDIO_LOCATION = os.getenv("AUDIO_LOCATION")
 JSON_OUTPUT = os.getenv("JSON_OUTPUT")
 
@@ -15,7 +15,7 @@ FILE_LIST = glob.glob(AUDIO_LOCATION + "/*.wav")
 
 def transcribe_speech(audio_file):
     pipe = pipeline(
-        "automatic-speech-recognition", model=MODEL, chunk_length_s=20, device="cpu"
+        "automatic-speech-recognition", model=MODEL, chunk_length_s=20, device="cpu", 
     )
 
     try:
@@ -24,10 +24,10 @@ def transcribe_speech(audio_file):
     except Exception as e:
         print(f"Predicton Error: {e}")
 
-    filename = os.path.basename(audio_file).replace(".wav", ".json")
+    filename = os.path.basename(audio_file).replace(".wav", "")
 
     try:
-        with open(os.path.join(JSON_OUTPUT, filename), "w") as f:
+        with open(os.path.join(JSON_OUTPUT, filename) + "_hfpipeline.json", "w") as f:
             f.write(output)
     except IOError as e:
         print(f"File Write Error: {e}")
