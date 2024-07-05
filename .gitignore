@@ -1,0 +1,3 @@
+**/.venv
+*.env
+*whisper_hf_generate.py
