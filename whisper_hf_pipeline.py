@@ -1,28 +1,20 @@
-
-from dotenv import load_dotenv
-import glob
-import torch
 from transformers import pipeline
 import os
 import json
 from tqdm import tqdm
 
-MODEL = os.getenv("HF_MODEL_TINY")
-AUDIO_LOCATION = os.getenv("AUDIO_LOCATION")
-JSON_OUTPUT = os.getenv("JSON_OUTPUT")
-
-FILE_LIST = glob.glob(AUDIO_LOCATION + "/*.wav")
-
-def transcribe_speech(audio_file):
+def transcribe_speech(audio_file, MODEL, JSON_OUTPUT):
     pipe = pipeline(
         "automatic-speech-recognition", model=MODEL, chunk_length_s=20, device="cpu", 
     )
 
+    output = None  # Initialize output
     try:
         prediction = pipe(audio_file, batch_size=8, return_timestamps=True)["chunks"]
         output = json.dumps(prediction, indent=2)
     except Exception as e:
-        print(f"Predicton Error: {e}")
+        print(f"Prediction Error: {e}")
+        return  # Return early if prediction fails
 
     filename = os.path.basename(audio_file).replace(".wav", "")
 
@@ -32,5 +24,6 @@ def transcribe_speech(audio_file):
     except IOError as e:
         print(f"File Write Error: {e}")
 
-for file in tqdm(FILE_LIST, desc="Transcribing Audio Files"):
-    transcribe_speech(file)
+def hugging_face_speech2text_pipeline(FILE_LIST, MODEL, JSON_OUTPUT):
+    for file in tqdm(FILE_LIST, desc="Transcribing Audio Files"):
+        transcribe_speech(file, MODEL, JSON_OUTPUT)
