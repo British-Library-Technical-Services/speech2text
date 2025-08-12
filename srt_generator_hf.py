@@ -1,11 +1,6 @@
 import os
-import glob
 import json
 
-JSON_FILES = os.getenv("JSON_OUTPUT")
-SRT_OUTPUT = os.getenv("SRT_OUTPUT")
-
-FILE_LIST = glob.glob(JSON_FILES + "/*.json")
 
 def get_timecode_text(data, index):
     start_time = data[index]["timestamp"][0]
@@ -36,20 +31,20 @@ def srt_line_formatter(start_time, end_time, text, index):
     line = f"{index}\n{start_time} --> {end_time}\n{text.strip()}\n\n"
     return line
 
+def convert_json_to_srt_file(FILE_LIST, SRT_OUTPUT):
+    for count, file in enumerate(FILE_LIST):
+        print("Converting JSON > SRT:", count + 1, "of", len(FILE_LIST))
+        with open(file) as f:
+            data = json.load(f)
 
-for count, file in enumerate(FILE_LIST):
-    print("Converting JSON > SRT:", count + 1, "of", len(FILE_LIST))
-    with open(file) as f:
-        data = json.load(f)
-
-    srt_name = os.path.basename(file).replace(".json", ".srt")
-    srt_file = os.path.join(SRT_OUTPUT, srt_name)
-    
-    for index, value in enumerate(data):
-        start, end, text = get_timecode_text(data, index)
-        start_time, end_time = time_conversion(start, end)
-        line = srt_line_formatter(start_time, end_time, text, index)
-    
+        srt_name = os.path.basename(file).replace(".json", ".srt")
+        srt_file = os.path.join(SRT_OUTPUT, srt_name)
         
-        with open(srt_file, "a") as f:
-            f.write(line)
+        for index, value in enumerate(data):
+            start, end, text = get_timecode_text(data, index)
+            start_time, end_time = time_conversion(start, end)
+            line = srt_line_formatter(start_time, end_time, text, index)
+        
+            
+            with open(srt_file, "a") as f:
+                f.write(line)
