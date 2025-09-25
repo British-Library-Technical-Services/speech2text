@@ -1,117 +1,174 @@
 # Speech-to-Text Processing Pipeline
 
-A Python-based speech-to-text transcription service that converts audio files to timestamped transcriptions and generates SRT subtitle files using OpenAI's Whisper models via multiple implementation approaches.
+A robust Python-based speech-to-text transcription service that converts WAV audio files to timestamped JSON transcriptions and generates SRT subtitle files using OpenAI's Whisper models via Hugging Face Transformers.
 
----
 ## Table of Contents
-1. Overview
-2. Core Workflows
-3. Architecture
-4. Environment & Dependencies
-5. Setup
-6. Usage
-7. File & Naming Conventions
-8. Output Formats
+1. [Overview](#overview)
+2. [Project Structure](#project-structure)
+3. [Requirements](#requirements)
+4. [Setup & Installation](#setup--installation)
+5. [Configuration](#configuration)
+6. [Usage](#usage)
+7. [Processing Pipeline](#processing-pipeline)
+8. [Output Formats](#output-formats)
+9. [Troubleshooting](#troubleshooting)
 
----
-## 1. Overview
-The service provides automated speech-to-text transcription with:
-- Support for multiple Whisper model implementations (Hugging Face Transformers, Whisper Timestamped).
-- Batch processing of WAV audio files with progress tracking.
-- Automatic generation of timestamped JSON transcriptions and SRT subtitle files.
-- Configurable model selection based on hardware capabilities and accuracy requirements.
-- Error handling and recovery for robust batch operations.
+## Overview
 
-## 2. Core Workflows
-### 2.1 Standard Transcription Pipeline (Hugging Face)
-Steps:
-1. Load environment configuration and validate required variables.
-2. Discover WAV audio files in the input directory.
-3. Process each audio file through Hugging Face Transformers pipeline.
-4. Generate timestamped JSON transcription files with phrase-level timestamps.
-5. Convert JSON files to SRT subtitle format with proper time formatting.
+This service provides automated batch processing of audio files with the following capabilities:
 
-### 2.2 Enhanced Precision Pipeline (Whisper Timestamped)
-1. Load Whisper model with enhanced timestamp capabilities.
-2. Process audio files with word-level timestamp precision.
-3. Generate detailed JSON transcriptions with improved timing accuracy.
-4. Convert to SRT format maintaining high-precision timestamps.
-5. Suitable for applications requiring exact word-level synchronization.
+- **Batch Processing**: Processes multiple WAV files from a specified directory
+- **Timestamped Transcription**: Generates JSON files with precise timestamp information
+- **SRT Subtitle Generation**: Converts JSON transcriptions to standard SRT subtitle format
+- **Progress Tracking**: Visual progress bars for batch operations using tqdm
+- **Error Handling**: Comprehensive error handling with detailed logging
+- **Directory Management**: Automatic creation of required output directories
 
-## 3. Architecture
-Module | Responsibility
--------|---------------
-`main.py` | Orchestrates transcription workflow & environment setup
-`whisper_hf_pipeline.py` | Hugging Face Transformers implementation with batch processing
-`whisper_whispertimestamped.py` | Enhanced timestamp precision using whisper-timestamped
-`srt_generator_hf.py` | JSON to SRT conversion with time formatting
+## Project Structure
 
-## 4. Environment & Dependencies
-Python: 3.8+
-Required Python packages:
-- transformers
-- torch
-- tqdm
-- whisper-timestamped (optional, for enhanced precision)
-
-Environment variables (create `.env` file):
 ```
-PT_MODEL_TINY        # Whisper model name ('tiny', 'base', 'small', 'medium', 'large')
-AUDIO_LOCATION       # Directory containing input WAV files
-JSON_OUTPUT          # Directory for intermediate JSON transcriptions
-SRT_OUTPUT           # Directory for final SRT subtitle files
+speech2text/
+├── main.py                          # Main orchestration script
+├── whisper_hf_pipeline.py          # Hugging Face Transformers implementation
+├── whisper_whispertimestamped.py   # Alternative Whisper implementation
+├── srt_generator_hf.py             # JSON to SRT conversion utilities
+├── _directories/
+│   ├── _models/                    # Downloaded Whisper models cache
+│   ├── audio/                      # Input WAV files
+│   │   └── done/                   # Processed audio files
+│   ├── json_output/                # Generated JSON transcriptions
+│   └── srt_output/                 # Generated SRT subtitle files
+│       └── done/                   # Processed SRT files
+└── README.md                       # This file
 ```
 
-## 5. Setup
-```bash
-git clone https://github.com/British-Library-Technical-Services/speech2text.git
-cd speech2text
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install transformers torch tqdm
-pip install whisper-timestamped  # Optional for enhanced precision
-cp .env.example .env  # Create and edit environment file
+### Core Modules
+
+| Module | Purpose |
+|--------|---------|
+| `main.py` | Application entry point, orchestrates the entire workflow |
+| `whisper_hf_pipeline.py` | Handles speech-to-text transcription using Hugging Face pipeline |
+| `srt_generator_hf.py` | Converts JSON transcriptions to SRT format with proper time formatting |
+| `whisper_whispertimestamped.py` | Alternative implementation for enhanced timestamp precision |
+
+## Requirements
+
+- **Python**: 3.8 or higher
+- **Required Packages**:
+  - `transformers` - Hugging Face Transformers library
+  - `torch` - PyTorch for model inference
+  - `tqdm` - Progress bars for batch operations
+  - `python-dotenv` - Environment variable management
+
+## Setup & Installation
+
+1. **Clone the repository**:
+   ```powershell
+   git clone https://github.com/British-Library-Technical-Services/speech2text.git
+   cd speech2text
+   ```
+
+2. **Create and activate virtual environment**:
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**:
+   ```powershell
+   pip install transformers torch tqdm python-dotenv
+   ```
+
+4. **Create environment configuration**:
+   Create a `.env` file in the project root with the required environment variables (see Configuration section).
+
+## Configuration
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+# Whisper model configuration
+HF_MODEL_TINY=openai/whisper-tiny.en
+
+# Directory paths (use absolute paths for reliability)
+AUDIO_LOCATION=C:\_development\speech2text\_directories\audio
+JSON_OUTPUT=C:\_development\speech2text\_directories\json_output
+SRT_OUTPUT=C:\_development\speech2text\_directories\srt_output
 ```
 
-## 6. Usage
-Run transcription pipeline:
-```bash
-python main.py
-```
+### Model Options
+- `openai/whisper-tiny.en` - Fastest, lowest accuracy, English-only
+- `openai/whisper-small.en` - Balanced speed/accuracy, English-only
+- `openai/whisper-small` - Multilingual support
+- `openai/whisper-base` - Better accuracy, slower processing
+- `openai/whisper-medium` - High accuracy, requires more resources
+- `openai/whisper-large` - Highest accuracy, slowest processing
 
-The service will:
-1. Load configuration from environment variables
-2. Discover all `.wav` files in `AUDIO_LOCATION`
-3. Process files through the selected pipeline
-4. Generate JSON transcriptions in `JSON_OUTPUT`
-5. Create SRT subtitle files in `SRT_OUTPUT`
+## Usage
 
-## 7. File & Naming Conventions
-Item | Convention
------|-----------
-Input audio files | `.wav` format (other formats may require conversion)
-JSON transcriptions | `<original_filename>_hfpipeline.json` or `<original_filename>_timestamped.json`
-SRT subtitle files | `<original_filename>.srt`
-Model names | `tiny`, `base`, `small`, `medium`, `large` (increasing accuracy/size)
+1. **Place audio files**: Copy your `.wav` files to the audio input directory specified in `AUDIO_LOCATION`
 
-## 8. Output Formats
-### 8.1 JSON Transcription Format
+2. **Run the pipeline**:
+   ```powershell
+   python main.py
+   ```
+
+3. **Monitor progress**: The application will display progress bars and status updates for each processing stage
+
+4. **Check outputs**: 
+   - JSON transcriptions will be saved to `JSON_OUTPUT`
+   - SRT subtitle files will be saved to `SRT_OUTPUT`
+
+## Processing Pipeline
+
+The application follows this workflow:
+
+### 1. Environment Validation
+- Loads environment variables from `.env` file
+- Validates that the Whisper model exists (downloads if necessary)
+- Creates output directories if they don't exist
+
+### 2. Audio Processing
+- Scans the audio directory for `.wav` files
+- Processes each file through the Hugging Face Transformers pipeline
+- Generates timestamped JSON transcription files
+
+### 3. SRT Generation
+- Reads existing JSON transcription files
+- Extracts timestamp and text data
+- Converts timestamps to SRT format (HH:MM:SS,mmm)
+- Generates properly formatted SRT subtitle files
+
+### Error Handling
+- Tracks failed transcriptions and subtitle generations
+- Provides detailed error reporting
+- Continues processing remaining files if individual files fail
+
+## Output Formats
+
+### JSON Transcription Format
 ```json
 [
   {
     "timestamp": [10.5, 15.2],
     "text": "This is the transcribed text segment"
+  },
+  {
+    "timestamp": [15.2, 20.1], 
+    "text": "Next transcription segment"
   }
 ]
 ```
 
-### 8.2 SRT Subtitle Format
-```
+### SRT Subtitle Format
+```srt
 1
 00:00:10,500 --> 00:00:15,200
 This is the transcribed text segment
 
 2
 00:00:15,200 --> 00:00:20,100
-Next subtitle segment
+Next transcription segment
 ```
+
+
