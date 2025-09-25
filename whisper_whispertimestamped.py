@@ -54,10 +54,10 @@ def transcribe_speech(audio_file, MODEL, JSON_OUTPUT):
         print(f"Prediction Error: {e}")
         return  # Return early if transcription fails
 
-    filename = os.path.basename(audio_file).replace(".wav", "")
+    filename = os.path.basename(audio_file).replace(".m4a", ".json")
 
     try:
-        with open(os.path.join(JSON_OUTPUT, filename) + "_timestamped.json", "w") as f:
+        with open(os.path.join(JSON_OUTPUT, filename), "w") as f:
             f.write(output)
     except IOError as e:
         print(f"File Write Error: {e}")
