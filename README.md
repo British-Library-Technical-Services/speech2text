@@ -35,10 +35,8 @@ speech2text/
 ├── _directories/
 │   ├── _models/                    # Downloaded Whisper models cache
 │   ├── audio/                      # Input WAV files
-│   │   └── done/                   # Processed audio files
 │   ├── json_output/                # Generated JSON transcriptions
 │   └── srt_output/                 # Generated SRT subtitle files
-│       └── done/                   # Processed SRT files
 └── README.md                       # This file
 ```
 
